@@ -46,7 +46,7 @@
     $checkBox6.Location = New-Object System.Drawing.Point(10,150)
     $checkBox6.AutoSize = $true
     $checkBox6.Text = "Enable DLSS Indicator?"
-    $checkBox6.Checked = $true
+    $checkBox6.Checked = $false
 
     # Add an OK button
     # Thanks to J.Vierra for simplifing the use of buttons in forms
@@ -111,26 +111,36 @@ $global:startafterburner=$false
 $global:startpresentmon=$false
 $global:startlosslessscaling=$false
 $global:showdlss=$false
+$global:currentuseridentity=[System.Security.Principal.WindowsIdentity]::GetCurrent()
+$global:currentuserprincipal=New-Object System.Security.Principal.WindowsPrincipal($currentuseridentity)
+$global:currentusername=$currentuseridentity.Name
+$global:currentdesktopusername=(Get-CimInstance Win32_ComputerSystem).username
+#$global:adminuser=$(Get-Credential -Credential "Owner")
+
+if ($currentuserprincipal.IsInRole([System.Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Write-Host -F Green 'Administrator'
+} else {
+    Write-Host -F Red 'Non-Administrator: please run this script as an Administrator'
+    Start-Sleep -m 2500
+    exit
+}
+
 # Call the function
 GamingDiag_Form
-if ($startpresentmon) {
-    start-process -WorkingDirectory "C:\Program Files\Intel\PresentMon\PresentMonApplication\" "C:\Program Files\Intel\PresentMon\PresentMonApplication\PresentMon.exe"
-    Start-Sleep -m 500
-}
 if ($startgpuz) {
-    start-process "C:\Program Files (x86)\GPU-Z\GPU-Z.exe"
+    start-process "C:\Program Files (x86)\GPU-Z\GPU-Z.exe" #-Credential $adminuser
     Start-Sleep -m 500
 }
 if ($starthwinfo) {
-    start-process "C:\Program Files\HWiNFO64\HWiNFO64.EXE"
+    start-process "C:\Program Files\HWiNFO64\HWiNFO64.EXE" #-Credential $adminuser
     Start-Sleep -m 500
 }
 if ($startafterburner) {
-    start-process "C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe"
+    start-process "C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe" #-Credential $adminuser
     Start-Sleep -m 500
 }
 if ($startlosslessscaling) {
-    start-process "E:\SteamLibrary\steamapps\common\Lossless Scaling\LosslessScaling.exe"
+    start-process "E:\SteamLibrary\steamapps\common\Lossless Scaling\LosslessScaling.exe" #-Credential $adminuser
     Start-Sleep -m 500
 }
 if ($showdlss) {
@@ -140,4 +150,12 @@ if ($showdlss) {
 if (!$showdlss) {
     Set-ItemProperty -Path "HKLM:\SOFTWARE\NVIDIA Corporation\Global\NGXCore" -Name "Installed" -Value 0x1
     Set-ItemProperty -Path "HKLM:\SOFTWARE\NVIDIA Corporation\Global\NGXCore" -Name "ShowDlssIndicator" -Value 0x0
+}
+if ($startpresentmon) {
+# PresentMon 2.4.0 UI doesn't start if run as Administrator from non-Administrator desktop
+#    start-process -WorkingDirectory "C:\Program Files\Intel\PresentMon\PresentMonApplication\" "C:\Program Files\Intel\PresentMon\PresentMonApplication\PresentMon.exe"
+
+start-process -Verb RunAsUser -WorkingDirectory "C:\Program Files\Intel\PresentMon\PresentMonApplication\" "C:\Program Files\Intel\PresentMon\PresentMonApplication\PresentMon.exe"
+#start-process -WorkingDirectory "C:\Program Files\Intel\PresentMon\PresentMonApplication\" "C:\Program Files\Intel\PresentMon\PresentMonApplication\PresentMon.exe"
+    Start-Sleep -m 50000
 }
