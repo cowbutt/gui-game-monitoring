@@ -13,40 +13,46 @@
     $Form.Font = $Font
 
     $checkBox1 = New-Object System.Windows.Forms.CheckBox
-    $checkBox1.Location = New-Object System.Drawing.Point(10,50)
+    $checkBox1.Location = New-Object System.Drawing.Point(10,10)
     $checkBox1.AutoSize = $true
     $checkBox1.Text = "Start GPU-Z?"
     $checkBox1.Checked = $true
 
     $checkBox2 = New-Object System.Windows.Forms.CheckBox
-    $checkBox2.Location = New-Object System.Drawing.Point(10,70)
+    $checkBox2.Location = New-Object System.Drawing.Point(10,30)
     $checkBox2.AutoSize = $true
     $checkBox2.Text = "Start HWiNFO64?"
     $checkBox2.Checked = $true
 
     $checkBox3 = New-Object System.Windows.Forms.CheckBox
-    $checkBox3.Location = New-Object System.Drawing.Point(10,90)
+    $checkBox3.Location = New-Object System.Drawing.Point(10,50)
     $checkBox3.AutoSize = $true
     $checkBox3.Text = "Start MSIAfterburner?"
     $checkBox3.Checked = $false
 
     $checkBox4 = New-Object System.Windows.Forms.CheckBox
-    $checkBox4.Location = New-Object System.Drawing.Point(10,110)
+    $checkBox4.Location = New-Object System.Drawing.Point(10,70)
     $checkBox4.AutoSize = $true
     $checkBox4.Text = "Start PresentMon?"
     $checkBox4.Checked = $true
 
-	$checkBox5 = New-Object System.Windows.Forms.CheckBox
-    $checkBox5.Location = New-Object System.Drawing.Point(10,130)
+    $checkBox5 = New-Object System.Windows.Forms.CheckBox
+    $checkBox5.Location = New-Object System.Drawing.Point(10,90)
     $checkBox5.AutoSize = $true
-    $checkBox5.Text = "Start Lossless Scaling?"
+    $checkBox5.Text = "Start Process Lasso?"
     $checkBox5.Checked = $false
 
 	$checkBox6 = New-Object System.Windows.Forms.CheckBox
-    $checkBox6.Location = New-Object System.Drawing.Point(10,150)
+    $checkBox6.Location = New-Object System.Drawing.Point(10,110)
     $checkBox6.AutoSize = $true
-    $checkBox6.Text = "Enable DLSS Indicator?"
+    $checkBox6.Text = "Start Lossless Scaling?"
     $checkBox6.Checked = $false
+
+	$checkBox7 = New-Object System.Windows.Forms.CheckBox
+    $checkBox7.Location = New-Object System.Drawing.Point(10,130)
+    $checkBox7.AutoSize = $true
+    $checkBox7.Text = "Enable DLSS Indicator?"
+    $checkBox7.Checked = $false
 
     # Add an OK button
     # Thanks to J.Vierra for simplifing the use of buttons in forms
@@ -64,7 +70,7 @@
     $CancelButton.DialogResult=[System.Windows.Forms.DialogResult]::Cancel
 
     # Add all the Form controls on one line 
-    $form.Controls.AddRange(@($OKButton,$CancelButton,$checkBox1,$checkBox2,$checkBox3,$checkBox4,$checkBox5,$checkBox6))
+    $form.Controls.AddRange(@($OKButton,$CancelButton,$checkBox1,$checkBox2,$checkBox3,$checkBox4,$checkBox5,$checkBox6,$checkBox7))
 
     # Assign the Accept and Cancel options in the form to the corresponding buttons
     $form.AcceptButton = $OKButton
@@ -93,9 +99,12 @@
            $global:startpresentmon=$true
         }
         if ($checkBox5.Checked){
-           $global:startlosslessscaling=$true
+           $global:startprocesslasso=$true
         }
         if ($checkBox6.Checked){
+           $global:startlosslessscaling=$true
+        }
+        if ($checkBox7.Checked){
            $global:showdlss=$true
         }		
         #Write-Output $startgpuz
@@ -109,6 +118,7 @@ $global:startgpuz=$false
 $global:starthwinfo=$false
 $global:startafterburner=$false
 $global:startpresentmon=$false
+$global:startprocesslasso=$false
 $global:startlosslessscaling=$false
 $global:showdlss=$false
 $global:currentuseridentity=[System.Security.Principal.WindowsIdentity]::GetCurrent()
@@ -143,6 +153,10 @@ if ($startlosslessscaling) {
     start-process "E:\SteamLibrary\steamapps\common\Lossless Scaling\LosslessScaling.exe" #-Credential $adminuser
     Start-Sleep -m 500
 }
+if ($startprocesslasso) {
+    start-process "C:\Program Files\Process Lasso\ProcessLassoLauncher.exe" -ArgumentList "/showwindow","/nodelay" #-Credential $adminuser
+    Start-Sleep -m 500
+}
 if ($showdlss) {
     Set-ItemProperty -Path "HKLM:\SOFTWARE\NVIDIA Corporation\Global\NGXCore" -Name "Installed" -Value 0x1
     Set-ItemProperty -Path "HKLM:\SOFTWARE\NVIDIA Corporation\Global\NGXCore" -Name "ShowDlssIndicator" -Value 0x400
@@ -159,3 +173,5 @@ start-process -Verb RunAsUser -WorkingDirectory "C:\Program Files\Intel\PresentM
 #start-process -WorkingDirectory "C:\Program Files\Intel\PresentMon\PresentMonApplication\" "C:\Program Files\Intel\PresentMon\PresentMonApplication\PresentMon.exe"
     Start-Sleep -m 50000
 }
+
+#Start-Sleep -m 500000 # for debugging
